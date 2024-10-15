@@ -1,128 +1,120 @@
-function startLevel(){    
-    $(".start-button").off();
-    if (level === 0){
-        answerArray = [];
-        buttonSequence = [];
-        level = 0;
-    }
-    buttonsOff();
-    changeLevelName(level + 1)    
-    var randomButtonId = randomizeNumber();
-    buttonSequence[level] = randomButtonId;
-    showButtonSequenceToUser(buttonSequence);
-    answerArray = []
-    setButtons()
-    //Now the player has to enter the correct sequence
-}
-
-
-function showButtonSequenceToUser(buttonSequence){
-    var idArray = ['green', 'red', 'yellow', 'blue']
-    for (var i = 0; i < buttonSequence.length; i++)
-    {
-        (function(i) {
-            var buttonIndex = buttonSequence[i];
-            setTimeout(function() {
-                highlightButton(idArray[buttonIndex]);
-            }, i * 1000); // Delays each button by 600ms (adjust time if needed)
-        })(i);
-
-    }
-}
-
-function randomizeNumber(){//random number between 0-3 3 included
-    return Math.floor(Math.random() * 4);
-}
-
-
-function highlightButton(buttonId){
-    $("#"+buttonId).addClass("white-border");
-
-    setTimeout(function(){
-        $("#"+buttonId).removeClass("white-border");
-    }, 500)
-}
-
-function highlightButtonInGreen(buttonId){
-    $("#"+buttonId).addClass("green-border");
-
-    setTimeout(function(){
-        $("#"+buttonId).removeClass("green-border");
-    }, 500)
-}
-
-function highlightButtonInRed(buttonId){
-    $("#"+buttonId).addClass("red-border");
-
-    setTimeout(function(){
-        $("#"+buttonId).removeClass("red-border");
-    }, 500)
-}
-
-function changeLevelName(level){
-    $("h1").text("Level " + level)
-}
-
 function main(){
-    //press any key to begin
-    buttonsOff()
     answerArray = [];
-    level = 0;
     buttonSequence = [];
-    $("h1").text("Press the start button")
-    $(".start-button").click(startLevel);
-   
+    level = 0;
+
+    setOffButoons();
+    
+    $("h1").text("Click the start button to play the game!");
+    $(".start-button").on("click", startLevel);
 }
 
+function startLevel(){
+    //start level sound
+   
+    playButtonSound("sucsses");
+    
+    setTimeout(function(){
+        //sutting off start button
+        $(".start-button").off();
+        //display level
+        displayLevelNumber(level + 1);
+        //adding to sequence
+        buttonSequence[buttonSequence.length] = randomButton();
+        //show sequence to the user
+        presentSequenceToUser(buttonSequence);
+        //setting the buttons
+        answerArray = [];
+        SetButtons();
+        //wait for user respond
+    }, 1000)    
+}
 
-function setButtons(){
-    $(".btn-container").on("click", function() {
-        var idArray = ['green', 'red', 'yellow', 'blue'];
-        var buttonId = $(this).attr("id");
-    
-        highlightButton(buttonId);
-        
-        var buttonIndex = idArray.indexOf(buttonId);
-    
-    
-        answerArray[answerArray.length] = buttonIndex;
-        
-        if (answerArray.length > buttonSequence.length){
-            answerArray = answerArray.slice(0, buttonSequence.length)
-        }
+function displayLevelNumber(level){
+    $("h1").text("Level " + level);
+}
 
-        if (answerArray[answerArray.length - 1] !== buttonSequence[answerArray.length - 1]){
-            highlightButtonInRed(buttonId);
-            answerArray = [];
-            buttonSequence = [];    
-            level = 0;
-            setTimeout(function(){
-                main();
-            }, 1000);
-        }
-        if (answerArray[answerArray.length - 1] === buttonSequence[answerArray.length - 1]){
-            highlightButtonInGreen(buttonId);
-        }
-        
-        if (answerArray.length === buttonSequence.length && answerArray.length !== 0){
-            level++;
-            buttonsOff()
+function randomButton(){
+    //returns the id attribute of a random button in the buttons containers
+    return $(".btn-container").eq(Math.floor(Math.random() * 4)).attr('id');
+}
+
+function presentSequenceToUser(sequence){ 
+    setOffButoons();
+    for (var i = 0; i < sequence.length; i++) {
+        (function(i) {
             setTimeout(function() {
-                startLevel();
-            }, 1000); // 1 second delay before calling startLevel
-        }
+                highLightButton(sequence[i], 'white'); // Highlight the button with the current element
+                playButtonSound(sequence[i])
+            }, 500 * i);
+        })(i); // IIFE to capture the current value of 'i'
+    }
+}
+
+function highLightButton(buttonId, color){
+    $("#" + buttonId).addClass(color + '-border');
     
+    setTimeout(function(){
+        $("#" + buttonId).removeClass(color + '-border');
+    }, 250)
+}
+
+function SetButtons(){
+    $(".btn-container").on("click", function(){
+        //add the button id to the answer array
+        answerArray[answerArray.length] = $(this).attr('id');
+        //we figure out if the button pressed is correct
+        //the user may spam to many buttons
+        if (answerArray.length > buttonSequence.length){
+            answerArray.slice(0, buttonSequence.length);
+        }
+        //check if correct button
+        var correctButton = isCorrectButton(answerArray, buttonSequence)
+        if (correctButton && answerArray.length === buttonSequence.length){
+            highLightButton(answerArray[answerArray.length - 1], 'green');
+            playButtonSound(answerArray[answerArray.length - 1]);
+
+            setOffButoons();
+            answerArray = [];
+            level++;
+            setTimeout(function(){
+                startLevel();
+            }, 1000);
+
+        } else if (correctButton){
+            highLightButton(answerArray[answerArray.length - 1], 'green');
+            playButtonSound(answerArray[answerArray.length - 1]);
+        
+        } else{
+            
+            highLightButton(answerArray[answerArray.length - 1], 'red');
+            playButtonSound('wrong');
+            main();
+        }
+
     });
 }
 
-function buttonsOff(){
-    $(".btn-container").off()
+function isCorrectButton(answerArray, buttonSequence){
+    if (answerArray[answerArray.length - 1] !== buttonSequence[answerArray.length - 1]){
+        return false;
+    }
+    return true;
+
 }
 
-var answerArray = [];
-var buttonSequence = [];
-var level = 0;
-setButtons();
+function setOffButoons(){
+    $(".btn-container").off();
+}
+
+function playButtonSound(buttonId){
+    var audio = new Audio("./sounds/" + buttonId + ".mp3")
+    audio.play()
+}
+
+var answerArray;
+var buttonSequence;
+var level;
 main();
 
 
