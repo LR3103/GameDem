@@ -108,13 +108,14 @@ function setOffButoons(){
 }
 
 function playButtonSound(buttonId){
-    var audio = new Audio("./sounds/" + buttonId + ".mp3")
-    audio.play()
+    var soundsId = ["blue", "green", "red", "sucsses", "wrong", "yellow"]
+    audios[soundsId.indexOf(buttonId)].play()
 }
 
 var answerArray;
 var buttonSequence;
 var level;
+var audios = [new Audio("./sounds/blue.mp3"), new Audio("./sounds/green.mp3"), new Audio("./sounds/red.mp3"), new Audio("./sounds/sucsses.mp3"),new Audio("./sounds/wrong.mp3"), new Audio("./sounds/yellow.mp3")]
 main();
 
 
